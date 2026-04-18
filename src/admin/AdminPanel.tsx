@@ -1,8 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { User } from 'firebase/auth';
 import { getDati, setDati } from '../lib/ristorante';
 
 interface Props { user: User; onLogout: () => void; }
+
+const CLOUDINARY_CLOUD = 'dmybopb31';
+const CLOUDINARY_PRESET = 'bollicine_upload';
 
 const sezioni = [
   { id:'info', label:'Info & Orari', icon:'📋' },
@@ -39,13 +42,10 @@ export default function AdminPanel({ user, onLogout }: Props) {
   };
 
   const changeSezione = (id: string) => { setSezione(id); setMobileMenu(false); };
-
   const sezLabel = sezioni.find(s => s.id === sezione);
 
   return (
     <div style={{ minHeight:'100vh', background:'#0B0B0B', display:'flex', flexDirection:'column', fontFamily:'system-ui' }}>
-
-      {/* TOP BAR MOBILE */}
       <div style={{ background:'#111', borderBottom:'1px solid rgba(200,169,106,0.15)', padding:'12px 16px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
         <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
           <button onClick={() => setMobileMenu(!mobileMenu)}
@@ -63,16 +63,7 @@ export default function AdminPanel({ user, onLogout }: Props) {
       </div>
 
       <div style={{ display:'flex', flex:1, overflow:'hidden', position:'relative' }}>
-
-        {/* SIDEBAR */}
-        <div style={{
-          width:'220px', background:'#111', borderRight:'1px solid rgba(200,169,106,0.15)',
-          display:'flex', flexDirection:'column', flexShrink:0,
-          position: mobileMenu ? 'absolute' : 'relative',
-          top:0, left:0, bottom:0, zIndex:50,
-          transform: mobileMenu ? 'translateX(0)' : undefined,
-          transition:'transform 0.2s',
-        }}>
+        <div style={{ width:'220px', background:'#111', borderRight:'1px solid rgba(200,169,106,0.15)', display:'flex', flexDirection:'column', flexShrink:0, position: mobileMenu ? 'absolute' : 'relative', top:0, left:0, bottom:0, zIndex:50 }}>
           <div style={{ padding:'16px 12px', borderBottom:'1px solid rgba(200,169,106,0.1)' }}>
             <p style={{ color:'rgba(255,255,255,0.3)', fontSize:'10px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', margin:0 }}>{user.email}</p>
           </div>
@@ -80,8 +71,7 @@ export default function AdminPanel({ user, onLogout }: Props) {
             {sezioni.map(sec => (
               <button key={sec.id} onClick={() => changeSezione(sec.id)}
                 style={{ width:'100%', background: sezione===sec.id ? 'rgba(200,169,106,0.15)' : 'transparent', border:'none', borderLeft: sezione===sec.id ? '3px solid #C8A96A' : '3px solid transparent', color: sezione===sec.id ? '#C8A96A' : 'rgba(255,255,255,0.5)', padding:'10px 14px', textAlign:'left', cursor:'pointer', fontSize:'13px', display:'flex', alignItems:'center', gap:'8px', transition:'all 0.15s' }}>
-                <span style={{ fontSize:'14px' }}>{sec.icon}</span>
-                {sec.label}
+                <span style={{ fontSize:'14px' }}>{sec.icon}</span>{sec.label}
               </button>
             ))}
           </nav>
@@ -90,10 +80,8 @@ export default function AdminPanel({ user, onLogout }: Props) {
           </div>
         </div>
 
-        {/* OVERLAY mobile */}
         {mobileMenu && <div onClick={() => setMobileMenu(false)} style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.5)', zIndex:40 }} />}
 
-        {/* CONTENUTO */}
         <div style={{ flex:1, overflowY:'auto', padding:'20px 16px' }}>
           {loading
             ? <p style={{ color:'rgba(255,255,255,0.3)', textAlign:'center', marginTop:'60px' }}>Caricamento...</p>
@@ -101,6 +89,47 @@ export default function AdminPanel({ user, onLogout }: Props) {
           }
         </div>
       </div>
+    </div>
+  );
+}
+
+async function uploadToCloudinary(file: File): Promise<string> {
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('upload_preset', CLOUDINARY_PRESET);
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, { method:'POST', body:fd });
+  const data = await res.json();
+  if (!data.secure_url) throw new Error('Upload fallito');
+  return data.secure_url;
+}
+
+function ImageUpload({ value, onChange, label }: { value:string; onChange:(url:string)=>void; label:string }) {
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState('');
+  const ref = useRef<HTMLInputElement>(null);
+
+  const handle = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { setError('Max 5MB per foto'); return; }
+    setUploading(true); setError('');
+    try {
+      const url = await uploadToCloudinary(file);
+      onChange(url);
+    } catch { setError('Errore upload — riprova'); }
+    finally { setUploading(false); }
+  };
+
+  return (
+    <div style={{ marginBottom:'16px' }}>
+      <label style={{ display:'block', color:'rgba(255,255,255,0.4)', fontSize:'11px', letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:'8px' }}>{label}</label>
+      {value && <img src={value} alt="" style={{ width:'100%', height:'160px', objectFit:'cover', borderRadius:'6px', marginBottom:'8px' }} />}
+      <input ref={ref} type="file" accept="image/*" onChange={handle} style={{ display:'none' }} />
+      <button onClick={() => ref.current?.click()} disabled={uploading}
+        style={{ background:'transparent', border:'1px solid rgba(200,169,106,0.4)', color:'#C8A96A', padding:'10px 20px', cursor:'pointer', fontSize:'12px', borderRadius:'4px', width:'100%', opacity:uploading?0.6:1 }}>
+        {uploading ? 'Caricamento...' : value ? '📷 Cambia foto' : '📷 Carica foto'}
+      </button>
+      {error && <p style={{ color:'#E24B4A', fontSize:'12px', marginTop:'6px' }}>{error}</p>}
     </div>
   );
 }
@@ -114,7 +143,7 @@ function FormEditor({ sezione, dati, onChange }: { sezione:string; dati:any; onC
     obj[keys[keys.length-1]] = value;
     onChange(nd);
   };
-  const updateItem = (arr: string, i: number, f: string, v: string) => {
+  const updateItem = (arr: string, i: number, f: string, v: any) => {
     const nd = JSON.parse(JSON.stringify(dati||{}));
     if (!nd[arr]) nd[arr]=[];
     if (!nd[arr][i]) nd[arr][i]={};
@@ -135,7 +164,7 @@ function FormEditor({ sezione, dati, onChange }: { sezione:string; dati:any; onC
   if (sezione==='chi_siamo') return <ChiSiamoForm dati={dati} update={update} />;
   if (sezione.startsWith('menu_')) return <MenuForm dati={dati} updateItem={updateItem} addItem={addItem} removeItem={removeItem} />;
   if (sezione==='vini') return <ViniForm dati={dati} updateItem={updateItem} addItem={addItem} removeItem={removeItem} />;
-  if (sezione==='degustazioni') return <DegustazioniForm dati={dati} updateItem={updateItem} addItem={addItem} removeItem={removeItem} />;
+  if (sezione==='degustazioni') return <DegustazioniForm dati={dati} update={update} updateItem={updateItem} addItem={addItem} removeItem={removeItem} />;
   if (sezione==='galleria') return <GalleriaForm dati={dati} updateItem={updateItem} addItem={addItem} removeItem={removeItem} />;
   if (sezione==='eventi') return <EventiForm dati={dati} updateItem={updateItem} addItem={addItem} removeItem={removeItem} />;
   if (sezione==='recensioni') return <RecensioniForm dati={dati} updateItem={updateItem} addItem={addItem} removeItem={removeItem} />;
@@ -176,11 +205,10 @@ function InfoForm({ dati, update }: any) {
       </div>
       <div style={crd}>
         <p style={stl}>Orari di apertura</p>
-        <p style={{ color:'rgba(255,255,255,0.3)', fontSize:'12px', marginBottom:'12px' }}>Scrivi "Chiuso" per i giorni di chiusura</p>
         {giorni.map(g => (
-          <div key={g} style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'10px', flexWrap:'wrap' }}>
+          <div key={g} style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'10px' }}>
             <span style={{ color:'rgba(255,255,255,0.5)', fontSize:'13px', width:'70px', flexShrink:0 }}>{labels[g]}</span>
-            <input style={{...inp, flex:1, minWidth:'150px'}} value={dati?.orari?.[g]||''} onChange={e=>update(`orari.${g}`,e.target.value)} placeholder="es. 18:00 - 00:00" />
+            <input style={{...inp, flex:1}} value={dati?.orari?.[g]||''} onChange={e=>update(`orari.${g}`,e.target.value)} placeholder="es. 18:00 - 00:00" />
           </div>
         ))}
       </div>
@@ -194,9 +222,9 @@ function HomeForm({ dati, update }: any) {
       <div style={crd}>
         <p style={stl}>Testi Home</p>
         <Field label="Titolo principale" value={dati?.titolo} onChange={v=>update('titolo',v)} />
-        <Field label="Sottotitolo" value={dati?.sottotitolo} onChange={v=>update('sottotitolo',v)} />
+        <Field label="Sottotitolo dorato" value={dati?.sottotitolo} onChange={v=>update('sottotitolo',v)} />
         <Field label="Testo descrittivo" value={dati?.testo} onChange={v=>update('testo',v)} multiline />
-        <Field label="Slogan (es. un'esperienza di vino e cucina)" value={dati?.slogan} onChange={v=>update('slogan',v)} />
+        <Field label="Slogan (piccolo, sopra il titolo)" value={dati?.slogan} onChange={v=>update('slogan',v)} />
       </div>
     </div>
   );
@@ -215,11 +243,11 @@ function ChiSiamoForm({ dati, update }: any) {
         <Field label="Nome" value={dati?.proprietario_nome} onChange={v=>update('proprietario_nome',v)} />
         <Field label="Bio" value={dati?.proprietario_bio} onChange={v=>update('proprietario_bio',v)} multiline />
         <Field label="Citazione" value={dati?.citazione} onChange={v=>update('citazione',v)} />
-        <Field label="URL foto proprietario" value={dati?.proprietario_foto} onChange={v=>update('proprietario_foto',v)} />
+        <ImageUpload label="Foto proprietario" value={dati?.proprietario_foto||''} onChange={v=>update('proprietario_foto',v)} />
       </div>
       <div style={crd}>
         <p style={stl}>Statistiche</p>
-        {[['stat1_num','Numero 1 (es. 600+)'],['stat1_label','Label 1 (es. Etichette in cantina)'],['stat2_num','Numero 2'],['stat2_label','Label 2'],['stat3_num','Numero 3'],['stat3_label','Label 3']].map(([k,l]) => (
+        {[['stat1_num','Numero 1'],['stat1_label','Label 1'],['stat2_num','Numero 2'],['stat2_label','Label 2'],['stat3_num','Numero 3'],['stat3_label','Label 3']].map(([k,l]) => (
           <Field key={k} label={l} value={dati?.[k]} onChange={v=>update(k,v)} />
         ))}
       </div>
@@ -275,13 +303,13 @@ function ViniForm({ dati, updateItem, addItem, removeItem }: any) {
   );
 }
 
-function DegustazioniForm({ dati, updateItem, addItem, removeItem }: any) {
+function DegustazioniForm({ dati, update, updateItem, addItem, removeItem }: any) {
   return (
     <div style={mxw}>
       <div style={crd}>
         <p style={stl}>Testo introduttivo</p>
-        <Field label="Titolo sezione" value={dati?.titolo} onChange={v=>{ const nd={...dati,titolo:v}; }} />
-        <Field label="Descrizione" value={dati?.desc} onChange={v=>{ const nd={...dati,desc:v}; }} multiline />
+        <Field label="Titolo" value={dati?.titolo} onChange={v=>update('titolo',v)} />
+        <Field label="Descrizione" value={dati?.desc} onChange={v=>update('desc',v)} multiline />
       </div>
       <p style={stl}>Percorsi degustazione</p>
       {(dati?.items||[]).map((d: any, i: number) => (
@@ -290,12 +318,12 @@ function DegustazioniForm({ dati, updateItem, addItem, removeItem }: any) {
             <span style={{ color:'rgba(255,255,255,0.5)', fontSize:'12px' }}>Percorso {i+1}</span>
             <button onClick={() => removeItem('items',i)} style={rmv}>Rimuovi</button>
           </div>
-          <Field label="Nome percorso" value={d.name} onChange={v=>updateItem('items',i,'name',v)} />
+          <Field label="Nome" value={d.name} onChange={v=>updateItem('items',i,'name',v)} />
           <Field label="Sottotitolo" value={d.sub} onChange={v=>updateItem('items',i,'sub',v)} />
           <Field label="Descrizione" value={d.desc} onChange={v=>updateItem('items',i,'desc',v)} multiline />
-          <Field label="Prezzo (es. € 35)" value={d.price} onChange={v=>updateItem('items',i,'price',v)} />
-          <Field label="Durata (es. 90 minuti)" value={d.durata} onChange={v=>updateItem('items',i,'durata',v)} />
-          <Field label="Max posti (es. Max 8 persone)" value={d.posti} onChange={v=>updateItem('items',i,'posti',v)} />
+          <Field label="Prezzo" value={d.price} onChange={v=>updateItem('items',i,'price',v)} />
+          <Field label="Durata" value={d.durata} onChange={v=>updateItem('items',i,'durata',v)} />
+          <Field label="Max posti" value={d.posti} onChange={v=>updateItem('items',i,'posti',v)} />
         </div>
       ))}
       <button onClick={() => addItem('items',{name:'',sub:'',desc:'',price:'',durata:'',posti:''})} style={add}>+ Aggiungi percorso</button>
@@ -308,7 +336,7 @@ function GalleriaForm({ dati, updateItem, addItem, removeItem }: any) {
   return (
     <div style={mxw}>
       <div style={{ background:'rgba(200,169,106,0.08)', border:'1px solid rgba(200,169,106,0.2)', borderRadius:'8px', padding:'12px 16px', marginBottom:'20px' }}>
-        <p style={{ color:'#C8A96A', fontSize:'12px', margin:0 }}>Inserisci URL delle foto (da Facebook, Google Drive, Unsplash, ecc.) · {items.length} foto totali</p>
+        <p style={{ color:'#C8A96A', fontSize:'12px', margin:0 }}>📷 Carica foto direttamente dal tuo telefono o PC · {items.length} foto totali</p>
       </div>
       {items.map((foto: any, i: number) => (
         <div key={i} style={crd}>
@@ -316,16 +344,14 @@ function GalleriaForm({ dati, updateItem, addItem, removeItem }: any) {
             <span style={{ color:'rgba(255,255,255,0.5)', fontSize:'12px' }}>Foto {i+1}</span>
             <button onClick={() => removeItem('items',i)} style={rmv}>Rimuovi</button>
           </div>
-          <Field label="URL immagine" value={foto.url} onChange={v=>updateItem('items',i,'url',v)} />
+          <ImageUpload label="Immagine" value={foto.url||''} onChange={v=>updateItem('items',i,'url',v)} />
           <Field label="Titolo/Descrizione" value={foto.titolo} onChange={v=>updateItem('items',i,'titolo',v)} />
           <div style={fld}>
             <label style={lbl}>Categoria</label>
-            <select value={foto.categoria||'Cibo'} onChange={e=>updateItem('items',i,'categoria',e.target.value)}
-              style={{...inp}}>
-              {['Cibo','Vini','Atmosfera','Cantina','Esterno','Eventi'].map(c => <option key={c} value={c}>{c}</option>)}
+            <select value={foto.categoria||'Cibo'} onChange={e=>updateItem('items',i,'categoria',e.target.value)} style={{...inp}}>
+              {['Cibo','Vini','Atmosfera','Cantina','Esterno','Eventi'].map(c=><option key={c} value={c}>{c}</option>)}
             </select>
           </div>
-          {foto.url && <img src={foto.url} alt="" style={{ width:'100%', height:'120px', objectFit:'cover', borderRadius:'4px', marginTop:'8px' }} onError={e=>(e.currentTarget.style.display='none')} />}
         </div>
       ))}
       <button onClick={() => addItem('items',{url:'',titolo:'',categoria:'Cibo'})} style={add}>+ Aggiungi foto</button>
@@ -345,8 +371,8 @@ function EventiForm({ dati, updateItem, addItem, removeItem }: any) {
           <Field label="Titolo evento" value={ev.titolo} onChange={v=>updateItem('items',i,'titolo',v)} />
           <Field label="Data (es. 25 Aprile 2025)" value={ev.data} onChange={v=>updateItem('items',i,'data',v)} />
           <Field label="Descrizione" value={ev.desc} onChange={v=>updateItem('items',i,'desc',v)} multiline />
-          <Field label="Prezzo (es. € 35 a persona)" value={ev.prezzo} onChange={v=>updateItem('items',i,'prezzo',v)} />
-          <Field label="URL immagine (opzionale)" value={ev.immagine} onChange={v=>updateItem('items',i,'immagine',v)} />
+          <Field label="Prezzo" value={ev.prezzo} onChange={v=>updateItem('items',i,'prezzo',v)} />
+          <ImageUpload label="Immagine evento (opzionale)" value={ev.immagine||''} onChange={v=>updateItem('items',i,'immagine',v)} />
         </div>
       ))}
       <button onClick={() => addItem('items',{titolo:'',data:'',desc:'',prezzo:'',immagine:''})} style={add}>+ Aggiungi evento</button>
@@ -367,7 +393,7 @@ function RecensioniForm({ dati, updateItem, addItem, removeItem }: any) {
           <Field label="Testo recensione" value={r.testo} onChange={v=>updateItem('items',i,'testo',v)} multiline />
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px' }}>
             <Field label="Stelle (1-5)" value={String(r.stelle)} onChange={v=>updateItem('items',i,'stelle',Number(v))} />
-            <Field label="Periodo (es. Marzo 2025)" value={r.data} onChange={v=>updateItem('items',i,'data',v)} />
+            <Field label="Periodo" value={r.data} onChange={v=>updateItem('items',i,'data',v)} />
           </div>
         </div>
       ))}
