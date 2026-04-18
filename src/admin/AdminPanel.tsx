@@ -123,7 +123,7 @@ function ImageUpload({ value, onChange, label }: { value:string; onChange:(url:s
   return (
     <div style={{ marginBottom:'16px' }}>
       <label style={{ display:'block', color:'rgba(255,255,255,0.4)', fontSize:'11px', letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:'8px' }}>{label}</label>
-      {value && <img src={value} alt="" style={{ width:'100%', height:'160px', objectFit:'cover', borderRadius:'6px', marginBottom:'8px' }} />}
+      {value && <img src={value} alt="" style={{ width:'100%', maxHeight:'220px', objectFit:'contain', borderRadius:'6px', marginBottom:'8px', background:'#1A1A1A' }} />}
       <input ref={ref} type="file" accept="image/*" onChange={handle} style={{ display:'none' }} />
       <button onClick={() => ref.current?.click()} disabled={uploading}
         style={{ background:'transparent', border:'1px solid rgba(200,169,106,0.4)', color:'#C8A96A', padding:'10px 20px', cursor:'pointer', fontSize:'12px', borderRadius:'4px', width:'100%', opacity:uploading?0.6:1 }}>
