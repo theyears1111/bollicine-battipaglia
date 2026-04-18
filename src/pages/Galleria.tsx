@@ -1,140 +1,66 @@
 import { useState, useEffect } from 'react';
-import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X } from 'lucide-react';
 import { useReveal } from '../hooks/useReveal';
 import PageHero from '../components/PageHero';
+import { useFirestore } from '../hooks/useFirestore';
 
-type Category = 'Tutti' | 'Cibo' | 'Vini' | 'Atmosfera' | 'Cantina';
+interface Foto { url:string; titolo:string; categoria:string; }
+interface GalData { items: Foto[]; }
 
-interface GalleryItem { src: string; alt: string; category: Exclude<Category, 'Tutti'>; }
+const fallback: GalData = { items: [
+  { url:'https://images.pexels.com/photos/1279330/pexels-photo-1279330.jpeg?auto=compress&cs=tinysrgb&w=600', titolo:'Gnocchi al tartufo', categoria:'Cibo' },
+  { url:'https://images.pexels.com/photos/1407846/pexels-photo-1407846.jpeg?auto=compress&cs=tinysrgb&w=600', titolo:'La nostra cantina', categoria:'Vini' },
+  { url:'https://images.pexels.com/photos/941861/pexels-photo-941861.jpeg?auto=compress&cs=tinysrgb&w=600', titolo:'Atmosfera serale', categoria:'Atmosfera' },
+  { url:'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=600', titolo:'Tagliere di salumi', categoria:'Cibo' },
+  { url:'https://images.pexels.com/photos/1089930/pexels-photo-1089930.jpeg?auto=compress&cs=tinysrgb&w=600', titolo:'Selezione di vini', categoria:'Vini' },
+  { url:'https://images.pexels.com/photos/5718025/pexels-photo-5718025.jpeg?auto=compress&cs=tinysrgb&w=600', titolo:'Crostini Cantábrico', categoria:'Cibo' },
+]};
 
-const images: GalleryItem[] = [
-  { src: 'https://images.pexels.com/photos/941861/pexels-photo-941861.jpeg?auto=compress&cs=tinysrgb&w=800', alt: 'Sala elegante Bollicine', category: 'Atmosfera' },
-  { src: 'https://images.pexels.com/photos/1279330/pexels-photo-1279330.jpeg?auto=compress&cs=tinysrgb&w=800', alt: 'Pasta fresca artigianale', category: 'Cibo' },
-  { src: 'https://images.pexels.com/photos/1407846/pexels-photo-1407846.jpeg?auto=compress&cs=tinysrgb&w=800', alt: 'Selezione vini pregiati', category: 'Vini' },
-  { src: 'https://images.pexels.com/photos/3407777/pexels-photo-3407777.jpeg?auto=compress&cs=tinysrgb&w=800', alt: 'Cantina con Grand Cru', category: 'Cantina' },
-  { src: 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=800', alt: 'Tagliere di salumi selezionati', category: 'Cibo' },
-  { src: 'https://images.pexels.com/photos/1089930/pexels-photo-1089930.jpeg?auto=compress&cs=tinysrgb&w=800', alt: 'Champagne e bollicine', category: 'Vini' },
-  { src: 'https://images.pexels.com/photos/1267320/pexels-photo-1267320.jpeg?auto=compress&cs=tinysrgb&w=800', alt: 'Atmosfera serale intima', category: 'Atmosfera' },
-  { src: 'https://images.pexels.com/photos/1269025/pexels-photo-1269025.jpeg?auto=compress&cs=tinysrgb&w=800', alt: 'Luigi il sommelier', category: 'Atmosfera' },
-  { src: 'https://images.pexels.com/photos/1126359/pexels-photo-1126359.jpeg?auto=compress&cs=tinysrgb&w=800', alt: 'Dolce tiramisù artigianale', category: 'Cibo' },
-  { src: 'https://images.pexels.com/photos/5718025/pexels-photo-5718025.jpeg?auto=compress&cs=tinysrgb&w=800', alt: 'Antipasto raffinato', category: 'Cibo' },
-  { src: 'https://images.pexels.com/photos/1640772/pexels-photo-1640772.jpeg?auto=compress&cs=tinysrgb&w=800', alt: 'Filetto di manzo pregiato', category: 'Cibo' },
-  { src: 'https://images.pexels.com/photos/2116094/pexels-photo-2116094.jpeg?auto=compress&cs=tinysrgb&w=800', alt: 'Gnocchi al tartufo', category: 'Cibo' },
-];
-
-const categories: Category[] = ['Tutti', 'Cibo', 'Vini', 'Atmosfera', 'Cantina'];
+const categorie = ['Tutte','Cibo','Vini','Atmosfera','Cantina','Esterno','Eventi'];
 
 export default function Galleria() {
   useReveal();
-  const [activeCategory, setActiveCategory] = useState<Category>('Tutti');
-  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-
+  const { data } = useFirestore<GalData>('galleria', fallback);
+  const [filtro, setFiltro] = useState('Tutte');
+  const [lightbox, setLightbox] = useState<Foto|null>(null);
   useEffect(() => { document.title = 'Galleria — Bollicine Battipaglia'; }, []);
 
-  const filtered = activeCategory === 'Tutti'
-    ? images
-    : images.filter((img) => img.category === activeCategory);
-
-  const openLightbox = (idx: number) => setLightboxIndex(idx);
-  const closeLightbox = () => setLightboxIndex(null);
-
-  const prev = () => {
-    if (lightboxIndex === null) return;
-    setLightboxIndex((lightboxIndex - 1 + filtered.length) % filtered.length);
-  };
-
-  const next = () => {
-    if (lightboxIndex === null) return;
-    setLightboxIndex((lightboxIndex + 1) % filtered.length);
-  };
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closeLightbox();
-      if (e.key === 'ArrowLeft') prev();
-      if (e.key === 'ArrowRight') next();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  });
+  const items = data.items?.length ? data.items : fallback.items;
+  const filtrate = filtro==='Tutte' ? items : items.filter(f => f.categoria===filtro);
 
   return (
     <>
-      <PageHero
-        title="Galleria"
-        subtitle="Immagini di Bollicine"
-        image="https://images.pexels.com/photos/941861/pexels-photo-941861.jpeg?auto=compress&cs=tinysrgb&w=1920"
-        height="h-[40vh]"
-      />
-
+      <PageHero title="Galleria" subtitle="Le nostre immagini"
+        image="https://images.pexels.com/photos/941861/pexels-photo-941861.jpeg?auto=compress&cs=tinysrgb&w=1920" height="h-[40vh]" />
       <section className="py-20 bg-nero">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex flex-wrap gap-3 justify-center mb-12 reveal">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
-                className={`font-sans text-xs tracking-widest uppercase px-6 py-2 transition-all duration-200 border ${
-                  activeCategory === cat
-                    ? 'border-oro bg-oro text-nero'
-                    : 'border-white/20 text-white/60 hover:border-oro hover:text-oro'
-                }`}
-              >
-                {cat}
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="flex gap-3 flex-wrap justify-center mb-12 reveal">
+            {categorie.map(c => (
+              <button key={c} onClick={() => setFiltro(c)}
+                className={`font-sans text-xs tracking-widest uppercase px-4 py-2 border transition-all duration-200 ${filtro===c ? 'border-oro text-oro bg-oro/10' : 'border-white/10 text-white/40 hover:border-oro/30 hover:text-oro/60'}`}>
+                {c}
               </button>
             ))}
           </div>
-
-          <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4">
-            {filtered.map((img, i) => (
-              <div
-                key={img.src + i}
-                className="break-inside-avoid cursor-pointer group overflow-hidden reveal"
-                onClick={() => openLightbox(i)}
-              >
-                <img
-                  src={img.src}
-                  alt={img.alt}
-                  className="w-full object-cover group-hover:scale-105 transition-transform duration-700"
-                />
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {filtrate.map((foto, i) => (
+              <div key={i} className={`relative overflow-hidden cursor-pointer group reveal reveal-delay-${(i%3)+1}`}
+                style={{aspectRatio:'4/3'}} onClick={() => setLightbox(foto)}>
+                <img src={foto.url} alt={foto.titolo} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                <div className="absolute inset-0 bg-nero/0 group-hover:bg-nero/40 transition-all duration-300 flex items-end p-4">
+                  <p className="font-sans text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">{foto.titolo}</p>
+                </div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {lightboxIndex !== null && (
-        <div
-          className="fixed inset-0 z-[100] bg-nero/95 flex items-center justify-center"
-          onClick={closeLightbox}
-        >
-          <button
-            className="absolute top-6 right-6 text-white/60 hover:text-oro transition-colors"
-            onClick={closeLightbox}
-          >
-            <X size={28} />
-          </button>
-          <button
-            className="absolute left-6 text-white/60 hover:text-oro transition-colors"
-            onClick={(e) => { e.stopPropagation(); prev(); }}
-          >
-            <ChevronLeft size={36} />
-          </button>
-          <img
-            src={filtered[lightboxIndex].src}
-            alt={filtered[lightboxIndex].alt}
-            className="max-w-4xl max-h-[80vh] w-full object-contain"
-            onClick={(e) => e.stopPropagation()}
-          />
-          <button
-            className="absolute right-6 text-white/60 hover:text-oro transition-colors"
-            onClick={(e) => { e.stopPropagation(); next(); }}
-          >
-            <ChevronRight size={36} />
-          </button>
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 font-sans text-xs text-white/30 tracking-widest">
-            {lightboxIndex + 1} / {filtered.length}
-          </div>
+      {lightbox && (
+        <div className="fixed inset-0 z-50 bg-nero/95 flex items-center justify-center p-4" onClick={() => setLightbox(null)}>
+          <button className="absolute top-6 right-6 text-white/60 hover:text-white" onClick={() => setLightbox(null)}><X size={28} /></button>
+          <img src={lightbox.url} alt={lightbox.titolo} className="max-w-full max-h-full object-contain" onClick={e => e.stopPropagation()} />
+          {lightbox.titolo && <p className="absolute bottom-8 text-white/60 font-sans text-sm">{lightbox.titolo}</p>}
         </div>
       )}
     </>
