@@ -304,12 +304,11 @@ function DegustazioniForm({ dati, updateItem, addItem, removeItem }: any) {
 }
 
 function GalleriaForm({ dati, updateItem, addItem, removeItem }: any) {
-  const MAX = 10;
   const items = dati?.items || [];
   return (
     <div style={mxw}>
       <div style={{ background:'rgba(200,169,106,0.08)', border:'1px solid rgba(200,169,106,0.2)', borderRadius:'8px', padding:'12px 16px', marginBottom:'20px' }}>
-        <p style={{ color:'#C8A96A', fontSize:'12px', margin:0 }}>Inserisci URL delle foto (da Google Drive, Unsplash, ecc.) · Max {MAX} foto · {items.length}/{MAX} utilizzate</p>
+        <p style={{ color:'#C8A96A', fontSize:'12px', margin:0 }}>Inserisci URL delle foto (da Facebook, Google Drive, Unsplash, ecc.) · {items.length} foto totali</p>
       </div>
       {items.map((foto: any, i: number) => (
         <div key={i} style={crd}>
@@ -329,9 +328,7 @@ function GalleriaForm({ dati, updateItem, addItem, removeItem }: any) {
           {foto.url && <img src={foto.url} alt="" style={{ width:'100%', height:'120px', objectFit:'cover', borderRadius:'4px', marginTop:'8px' }} onError={e=>(e.currentTarget.style.display='none')} />}
         </div>
       ))}
-      {items.length < MAX && (
-        <button onClick={() => addItem('items',{url:'',titolo:'',categoria:'Cibo'})} style={add}>+ Aggiungi foto ({items.length}/{MAX})</button>
-      )}
+      <button onClick={() => addItem('items',{url:'',titolo:'',categoria:'Cibo'})} style={add}>+ Aggiungi foto</button>
     </div>
   );
 }
