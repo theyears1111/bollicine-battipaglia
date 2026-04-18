@@ -1,10 +1,12 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { X } from 'lucide-react';
 import { useReveal } from '../hooks/useReveal';
 import { navigate } from '../App';
 import PageHero from '../components/PageHero';
 import { useFirestore } from '../hooks/useFirestore';
+import { squareUrl, imgUrl } from '../lib/cloudinary';
 
-interface Dish { name:string; desc:string; price:string; }
+interface Dish { name:string; desc:string; price:string; foto?:string; }
 interface MenuData { items: Dish[]; }
 
 const fallbackAntipasti: MenuData = { items:[
@@ -31,6 +33,44 @@ const fallbackSecondi: MenuData = { items:[
   {name:'Pesce Crudo del Giorno',desc:'Selezione di crudi di mare pregiati',price:'su richiesta'},
 ]};
 
+function DishCard({ dish }: { dish: Dish }) {
+  const [popup, setPopup] = useState(false);
+  return (
+    <>
+      <div className="flex items-start justify-between gap-4 pb-6 border-b border-white/5 last:border-0 group">
+        <div className="flex-1">
+          <h3 className="font-serif text-xl text-white mb-1 group-hover:text-oro transition-colors">{dish.name}</h3>
+          <p className="font-sans text-xs text-white/40 leading-relaxed">{dish.desc}</p>
+        </div>
+        <div className="flex items-center gap-3 shrink-0 mt-0.5">
+          {dish.foto && (
+            <button onClick={() => setPopup(true)}
+              className="overflow-hidden hover:opacity-80 transition-opacity"
+              style={{ width:'52px', height:'52px', borderRadius:'4px', flexShrink:0 }}>
+              <img src={squareUrl(dish.foto)} alt={dish.name}
+                className="w-full h-full object-cover" />
+            </button>
+          )}
+          <span className="font-serif text-lg text-oro whitespace-nowrap">{dish.price}</span>
+        </div>
+      </div>
+
+      {popup && dish.foto && (
+        <div className="fixed inset-0 z-50 bg-nero/95 flex items-center justify-center p-6"
+          onClick={() => setPopup(false)}>
+          <button className="absolute top-6 right-6 text-white/50 hover:text-white" onClick={() => setPopup(false)}><X size={24} /></button>
+          <div onClick={e=>e.stopPropagation()} className="max-w-lg w-full">
+            <img src={imgUrl(dish.foto, {w:900, q:90})} alt={dish.name}
+              className="w-full object-cover" style={{borderRadius:'8px', maxHeight:'70vh', objectFit:'contain'}} />
+            <p className="font-serif text-xl text-white text-center mt-4">{dish.name}</p>
+            <p className="font-sans text-sm text-oro text-center mt-1">{dish.price}</p>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 function MenuSection({ title, items, delay }: { title:string; items:Dish[]; delay:number }) {
   if (!items?.length) return null;
   return (
@@ -40,15 +80,7 @@ function MenuSection({ title, items, delay }: { title:string; items:Dish[]; dela
         <div className="flex-1 h-px bg-white/5" />
       </div>
       <div className="space-y-6">
-        {items.map((dish,i) => (
-          <div key={i} className="flex items-start justify-between gap-4 pb-6 border-b border-white/5 last:border-0 group">
-            <div className="flex-1">
-              <h3 className="font-serif text-xl text-white mb-1 group-hover:text-oro transition-colors">{dish.name}</h3>
-              <p className="font-sans text-xs text-white/40 leading-relaxed">{dish.desc}</p>
-            </div>
-            <span className="font-serif text-lg text-oro shrink-0 mt-0.5 whitespace-nowrap">{dish.price}</span>
-          </div>
-        ))}
+        {items.map((dish,i) => <DishCard key={i} dish={dish} />)}
       </div>
     </div>
   );
@@ -64,7 +96,8 @@ export default function Menu() {
   return (
     <>
       <PageHero title="Il nostro menu" subtitle="Cucina ricercata"
-        image="https://images.pexels.com/photos/1279330/pexels-photo-1279330.jpeg?auto=compress&cs=tinysrgb&w=1920" height="h-[45vh]" />
+        image="https://images.pexels.com/photos/1279330/pexels-photo-1279330.jpeg?auto=compress&cs=tinysrgb&w=1920"
+        height="h-[45vh]" />
       <section className="py-28 bg-nero">
         <div className="max-w-4xl mx-auto px-6">
           <div className="text-center mb-20 reveal">
@@ -72,7 +105,8 @@ export default function Menu() {
             <h2 className="font-serif text-4xl md:text-5xl text-white mb-6">Un percorso sensoriale</h2>
             <div className="w-12 h-px bg-oro mx-auto mb-6" />
             <p className="font-sans text-sm text-white/50 max-w-xl mx-auto leading-relaxed">
-              La cucina di Bollicine è studiata per esaltare ogni abbinamento con vino. Luigi vi guiderà nella scelta della bottiglia perfetta.
+              La cucina di Bollicine è studiata per esaltare ogni abbinamento con vino.
+              Luigi vi guiderà nella scelta della bottiglia perfetta.
             </p>
           </div>
           <MenuSection title="Antipasti" items={antipasti.items} delay={1} />

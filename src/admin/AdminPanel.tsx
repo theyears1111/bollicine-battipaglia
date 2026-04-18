@@ -267,9 +267,10 @@ function MenuForm({ dati, updateItem, addItem, removeItem }: any) {
           <Field label="Nome piatto" value={item.name} onChange={v=>updateItem('items',i,'name',v)} />
           <Field label="Descrizione" value={item.desc} onChange={v=>updateItem('items',i,'desc',v)} multiline />
           <Field label="Prezzo (es. € 12,00)" value={item.price} onChange={v=>updateItem('items',i,'price',v)} />
+          <ImageUpload label="Foto piatto (opzionale)" value={item.foto||''} onChange={v=>updateItem('items',i,'foto',v)} />
         </div>
       ))}
-      <button onClick={() => addItem('items',{name:'',desc:'',price:''})} style={add}>+ Aggiungi piatto</button>
+      <button onClick={() => addItem('items',{name:'',desc:'',price:'',foto:''})} style={add}>+ Aggiungi piatto</button>
     </div>
   );
 }
