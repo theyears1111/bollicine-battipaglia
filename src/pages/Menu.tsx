@@ -35,13 +35,9 @@ const fallbackSecondi: MenuData = { items:[
 
 function DishPopup({ dish, onClose }: { dish: Dish; onClose: () => void }) {
   useEffect(() => {
-    document.body.style.overflow = 'hidden';
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', onKey);
-    return () => {
-      document.body.style.overflow = '';
-      window.removeEventListener('keydown', onKey);
-    };
+    return () => window.removeEventListener('keydown', onKey);
   }, []);
 
   return (
@@ -51,60 +47,54 @@ function DishPopup({ dish, onClose }: { dish: Dish; onClose: () => void }) {
         position: 'fixed', inset: 0, zIndex: 9999,
         backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
         background: 'rgba(11,11,11,0.88)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: '16px',
         overflowY: 'auto',
+        WebkitOverflowScrolling: 'touch',
       }}>
-      {/* Card centrata */}
-      <div
-        onClick={e => e.stopPropagation()}
-        style={{
-          width: '100%', maxWidth: '480px',
-          margin: 'auto',
-          background: '#111',
-          border: '1px solid rgba(200,169,106,0.2)',
-          borderRadius: '10px',
-          overflow: 'hidden',
-          animation: 'popIn 0.22s ease-out',
-          position: 'relative',
-        }}>
-        {/* X in alto a destra */}
-        <button
-          onClick={onClose}
+      {/* Wrapper scrollabile con padding */}
+      <div style={{ minHeight: '100%', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '40px 16px' }}>
+        <div
+          onClick={e => e.stopPropagation()}
           style={{
-            position: 'absolute', top: '12px', right: '12px', zIndex: 10,
-            width: '32px', height: '32px', borderRadius: '50%',
-            background: 'rgba(11,11,11,0.75)', border: '1px solid rgba(255,255,255,0.15)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', color: 'rgba(255,255,255,0.7)',
+            width: '100%', maxWidth: '480px',
+            background: '#111',
+            border: '1px solid rgba(200,169,106,0.2)',
+            borderRadius: '10px',
+            overflow: 'hidden',
+            animation: 'popIn 0.22s ease-out',
+            position: 'relative',
           }}>
-          <X size={15} />
-        </button>
+          {/* X */}
+          <button
+            onClick={onClose}
+            style={{
+              position: 'absolute', top: '12px', right: '12px', zIndex: 10,
+              width: '32px', height: '32px', borderRadius: '50%',
+              background: 'rgba(11,11,11,0.75)', border: '1px solid rgba(255,255,255,0.15)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', color: 'rgba(255,255,255,0.7)',
+            }}>
+            <X size={15} />
+          </button>
 
-        {/* Foto — sempre intera, mai tagliata */}
-        <img
-          src={imgUrl(dish.foto!, { w: 960, q: 90 })}
-          alt={dish.name}
-          style={{
-            width: '100%',
-            display: 'block',
-            objectFit: 'contain',
-            background: '#0B0B0B',
-            maxHeight: '65vh',
-          }}
-        />
+          {/* Foto — intera, senza maxHeight così non viene mai tagliata */}
+          <img
+            src={imgUrl(dish.foto!, { w: 960, q: 90 })}
+            alt={dish.name}
+            style={{ width: '100%', display: 'block', objectFit: 'contain', background: '#0B0B0B' }}
+          />
 
-        {/* Info */}
-        <div style={{ padding: '18px 22px 22px', borderTop: '1px solid rgba(200,169,106,0.1)' }}>
-          <h3 style={{ fontFamily: 'Georgia,serif', fontSize: '20px', color: '#fff', margin: '0 0 6px' }}>{dish.name}</h3>
-          <p style={{ fontFamily: 'system-ui', fontSize: '12px', color: 'rgba(255,255,255,0.4)', lineHeight: 1.6, margin: '0 0 14px' }}>{dish.desc}</p>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontFamily: 'Georgia,serif', fontSize: '20px', color: '#C8A96A' }}>{dish.price}</span>
-            <button
-              onClick={() => { onClose(); navigate('prenotazioni'); }}
-              style={{ background: '#C8A96A', color: '#0B0B0B', border: 'none', padding: '9px 18px', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', fontWeight: 500, borderRadius: '2px' }}>
-              Prenota
-            </button>
+          {/* Info */}
+          <div style={{ padding: '18px 22px 22px', borderTop: '1px solid rgba(200,169,106,0.1)' }}>
+            <h3 style={{ fontFamily: 'Georgia,serif', fontSize: '20px', color: '#fff', margin: '0 0 6px' }}>{dish.name}</h3>
+            <p style={{ fontFamily: 'system-ui', fontSize: '12px', color: 'rgba(255,255,255,0.4)', lineHeight: 1.6, margin: '0 0 14px' }}>{dish.desc}</p>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontFamily: 'Georgia,serif', fontSize: '20px', color: '#C8A96A' }}>{dish.price}</span>
+              <button
+                onClick={() => { onClose(); navigate('prenotazioni'); }}
+                style={{ background: '#C8A96A', color: '#0B0B0B', border: 'none', padding: '9px 18px', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', fontWeight: 500, borderRadius: '2px' }}>
+                Prenota
+              </button>
+            </div>
           </div>
         </div>
       </div>
