@@ -3,51 +3,49 @@ import { Star, Wine, Utensils, Sparkles, ChevronDown } from 'lucide-react';
 import { navigate } from '../App';
 import { useReveal } from '../hooks/useReveal';
 import { useFirestore } from '../hooks/useFirestore';
-import { squareUrl } from '../lib/cloudinary';
+import { imgUrl } from '../lib/cloudinary';
 
 const HERO = 'https://images.pexels.com/photos/941861/pexels-photo-941861.jpeg?auto=compress&cs=tinysrgb&w=1920';
 const WINE_BG = 'https://images.pexels.com/photos/1407846/pexels-photo-1407846.jpeg?auto=compress&cs=tinysrgb&w=1920';
 
-const FALLBACK_HIGHLIGHTS = [
-  { img:'https://images.pexels.com/photos/1279330/pexels-photo-1279330.jpeg?auto=compress&cs=tinysrgb&w=600', name:'Gnocchi al Tartufo Nero', desc:"Un primo piatto d'eccellenza con tartufo pregiato" },
-  { img:'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=600', name:'Tagliere di Salumi Selezionati', desc:'Salumi artigianali e formaggi affinati' },
-  { img:'https://images.pexels.com/photos/5718025/pexels-photo-5718025.jpeg?auto=compress&cs=tinysrgb&w=600', name:'Crostini Beppino Occelli', desc:'Con burro premium e alici del Cantábrico' },
-];
-
 const reviews = [
-  { name:'Martino S.', text:"Giovani, preparati, competenti e gentili. Un bel posto per aprire belle bottiglie e stuzzicare con qualcosa di ricercato.", stars:5 },
-  { name:'Valentina D.', text:"Un'esperienza gastronomica unica e indimenticabile. Eccellenza assoluta a Battipaglia.", stars:5 },
-  { name:'Graziella S.', text:'Un paradiso per gli appassionati di vino. Grandi etichette da tutto il mondo e una straordinaria stanza dei vini.', stars:5 },
+  { name:'Martino S.', text:"Giovani, preparati, competenti e gentili. Un bel posto per aprire belle bottiglie.", stars:5 },
+  { name:'Valentina D.', text:"Un'esperienza gastronomica unica e indimenticabile. Eccellenza assoluta.", stars:5 },
+  { name:'Graziella S.', text:'Un paradiso per gli appassionati di vino. Grandi etichette da tutto il mondo.', stars:5 },
 ];
 
-interface Dish { name:string; desc:string; price:string; foto?:string; }
-interface MenuData { items: Dish[]; }
-interface HomeData { titolo:string; sottotitolo:string; testo:string; slogan:string; }
+interface HomeData {
+  titolo:string; sottotitolo:string; testo:string; slogan:string;
+  piatto1_nome:string; piatto1_desc:string; piatto1_foto:string;
+  piatto2_nome:string; piatto2_desc:string; piatto2_foto:string;
+  piatto3_nome:string; piatto3_desc:string; piatto3_foto:string;
+}
 
 const fallbackHome: HomeData = {
   titolo:"Un'esperienza di", sottotitolo:'vino e cucina',
   testo:"Bollicine nasce dalla passione di Luigi, sommelier esperto, che ha trasformato un sogno in un luogo dove ogni calice racconta una storia.",
   slogan:'Battipaglia · Campania',
+  piatto1_nome:'Gnocchi al Tartufo Nero', piatto1_desc:"Un primo piatto d'eccellenza con tartufo pregiato",
+  piatto1_foto:'https://images.pexels.com/photos/1279330/pexels-photo-1279330.jpeg?auto=compress&cs=tinysrgb&w=600',
+  piatto2_nome:'Tagliere di Salumi', piatto2_desc:'Salumi artigianali e formaggi affinati',
+  piatto2_foto:'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=600',
+  piatto3_nome:'Crostini Beppino Occelli', piatto3_desc:'Con burro premium e alici del Cantábrico',
+  piatto3_foto:'https://images.pexels.com/photos/5718025/pexels-photo-5718025.jpeg?auto=compress&cs=tinysrgb&w=600',
 };
 
 export default function Home() {
   useReveal();
   useEffect(() => { document.title = 'Bollicine — Ristorante e Wine Bar a Battipaglia'; }, []);
-
   const { data: hd } = useFirestore<HomeData>('home', fallbackHome);
-  const { data: antipasti } = useFirestore<MenuData>('menu_antipasti', { items:[] });
-  const { data: primi } = useFirestore<MenuData>('menu_primi', { items:[] });
 
-  // Primi 3 piatti con foto da menu Firebase
-  const allDishes = [...(antipasti.items||[]), ...(primi.items||[])];
-  const withPhoto = allDishes.filter(d => d.foto && d.foto.length > 0);
-  const highlights = withPhoto.length >= 3
-    ? withPhoto.slice(0,3).map(d => ({ img:d.foto!, name:d.name, desc:d.desc }))
-    : FALLBACK_HIGHLIGHTS;
+  const piatti = [
+    { nome: hd.piatto1_nome||fallbackHome.piatto1_nome, desc: hd.piatto1_desc||fallbackHome.piatto1_desc, foto: hd.piatto1_foto||fallbackHome.piatto1_foto },
+    { nome: hd.piatto2_nome||fallbackHome.piatto2_nome, desc: hd.piatto2_desc||fallbackHome.piatto2_desc, foto: hd.piatto2_foto||fallbackHome.piatto2_foto },
+    { nome: hd.piatto3_nome||fallbackHome.piatto3_nome, desc: hd.piatto3_desc||fallbackHome.piatto3_desc, foto: hd.piatto3_foto||fallbackHome.piatto3_foto },
+  ];
 
   return (
     <>
-      {/* HERO */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
         <img src={HERO} alt="Bollicine" className="absolute inset-0 w-full h-full object-cover"
           style={{ animation:'kenBurns 20s ease-in-out infinite alternate' }} />
@@ -71,7 +69,6 @@ export default function Home() {
       </section>
       <style>{`@keyframes kenBurns { from { transform:scale(1.05) translate(0,0); } to { transform:scale(1.1) translate(-1%,-1%); } }`}</style>
 
-      {/* INTRO */}
       <section className="py-28 bg-nero">
         <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
           <div>
@@ -92,7 +89,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* PUNTI DI FORZA */}
       <section className="py-24 bg-grigio">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-16">
@@ -115,7 +111,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* PIATTI IN EVIDENZA — da Firebase */}
+      {/* PIATTI IN EVIDENZA — modificabili dall'admin */}
       <section className="py-24 bg-nero">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-16">
@@ -123,14 +119,14 @@ export default function Home() {
             <h2 className="font-serif text-4xl md:text-5xl text-white reveal reveal-delay-1">Piatti in evidenza</h2>
           </div>
           <div className="grid md:grid-cols-3 gap-6 mb-12">
-            {highlights.map((item,i) => (
+            {piatti.map((p,i) => (
               <div key={i} className={`group cursor-pointer reveal reveal-delay-${i+1}`} onClick={() => navigate('menu')}>
                 <div className="overflow-hidden mb-4" style={{height:'256px'}}>
-                  <img src={squareUrl(item.img)} alt={item.name}
+                  <img src={imgUrl(p.foto, {w:600, h:512, fit:'fill', q:85})} alt={p.nome}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                 </div>
-                <h3 className="font-serif text-xl text-white mb-2 group-hover:text-oro transition-colors">{item.name}</h3>
-                <p className="font-sans text-xs text-white/40">{item.desc}</p>
+                <h3 className="font-serif text-xl text-white mb-2 group-hover:text-oro transition-colors">{p.nome}</h3>
+                <p className="font-sans text-xs text-white/40">{p.desc}</p>
               </div>
             ))}
           </div>
@@ -140,7 +136,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* RECENSIONI */}
       <section className="py-24 bg-grigio">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-16">
@@ -168,7 +163,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA */}
       <section className="relative py-32 flex items-center justify-center overflow-hidden"
         style={{backgroundImage:`url(${WINE_BG})`,backgroundSize:'cover',backgroundPosition:'center'}}>
         <div className="absolute inset-0 bg-nero/80" />

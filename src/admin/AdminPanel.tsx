@@ -220,11 +220,29 @@ function HomeForm({ dati, update }: any) {
   return (
     <div style={mxw}>
       <div style={crd}>
-        <p style={stl}>Testi Home</p>
-        <Field label="Titolo principale" value={dati?.titolo} onChange={v=>update('titolo',v)} />
-        <Field label="Sottotitolo dorato" value={dati?.sottotitolo} onChange={v=>update('sottotitolo',v)} />
+        <p style={stl}>Testi principali</p>
+        <Field label="Titolo (es. Un'esperienza di)" value={dati?.titolo} onChange={v=>update('titolo',v)} />
+        <Field label="Sottotitolo dorato (es. vino e cucina)" value={dati?.sottotitolo} onChange={v=>update('sottotitolo',v)} />
         <Field label="Testo descrittivo" value={dati?.testo} onChange={v=>update('testo',v)} multiline />
-        <Field label="Slogan (piccolo, sopra il titolo)" value={dati?.slogan} onChange={v=>update('slogan',v)} />
+        <Field label="Slogan sopra il titolo (es. Battipaglia · Campania)" value={dati?.slogan} onChange={v=>update('slogan',v)} />
+      </div>
+      <div style={crd}>
+        <p style={stl}>Piatto in evidenza 1</p>
+        <Field label="Nome piatto" value={dati?.piatto1_nome} onChange={v=>update('piatto1_nome',v)} />
+        <Field label="Descrizione breve" value={dati?.piatto1_desc} onChange={v=>update('piatto1_desc',v)} />
+        <ImageUpload label="Foto piatto 1" value={dati?.piatto1_foto||''} onChange={v=>update('piatto1_foto',v)} />
+      </div>
+      <div style={crd}>
+        <p style={stl}>Piatto in evidenza 2</p>
+        <Field label="Nome piatto" value={dati?.piatto2_nome} onChange={v=>update('piatto2_nome',v)} />
+        <Field label="Descrizione breve" value={dati?.piatto2_desc} onChange={v=>update('piatto2_desc',v)} />
+        <ImageUpload label="Foto piatto 2" value={dati?.piatto2_foto||''} onChange={v=>update('piatto2_foto',v)} />
+      </div>
+      <div style={crd}>
+        <p style={stl}>Piatto in evidenza 3</p>
+        <Field label="Nome piatto" value={dati?.piatto3_nome} onChange={v=>update('piatto3_nome',v)} />
+        <Field label="Descrizione breve" value={dati?.piatto3_desc} onChange={v=>update('piatto3_desc',v)} />
+        <ImageUpload label="Foto piatto 3" value={dati?.piatto3_foto||''} onChange={v=>update('piatto3_foto',v)} />
       </div>
     </div>
   );
