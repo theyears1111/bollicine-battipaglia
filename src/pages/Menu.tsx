@@ -33,9 +33,88 @@ const fallbackSecondi: MenuData = { items:[
   {name:'Pesce Crudo del Giorno',desc:'Selezione di crudi di mare pregiati',price:'su richiesta'},
 ]};
 
-function DishCard({ dish }: { dish: Dish }) {
-  const [popup, setPopup] = useState(false);
+function DishPopup({ dish, onClose }: { dish: Dish; onClose: () => void }) {
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', onKey);
+    };
+  }, []);
 
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 9999,
+        backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+        background: 'rgba(11,11,11,0.88)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '16px',
+        overflowY: 'auto',
+      }}>
+      {/* Card centrata */}
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          width: '100%', maxWidth: '480px',
+          margin: 'auto',
+          background: '#111',
+          border: '1px solid rgba(200,169,106,0.2)',
+          borderRadius: '10px',
+          overflow: 'hidden',
+          animation: 'popIn 0.22s ease-out',
+          position: 'relative',
+        }}>
+        {/* X in alto a destra */}
+        <button
+          onClick={onClose}
+          style={{
+            position: 'absolute', top: '12px', right: '12px', zIndex: 10,
+            width: '32px', height: '32px', borderRadius: '50%',
+            background: 'rgba(11,11,11,0.75)', border: '1px solid rgba(255,255,255,0.15)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', color: 'rgba(255,255,255,0.7)',
+          }}>
+          <X size={15} />
+        </button>
+
+        {/* Foto — sempre intera, mai tagliata */}
+        <img
+          src={imgUrl(dish.foto!, { w: 960, q: 90 })}
+          alt={dish.name}
+          style={{
+            width: '100%',
+            display: 'block',
+            objectFit: 'contain',
+            background: '#0B0B0B',
+            maxHeight: '65vh',
+          }}
+        />
+
+        {/* Info */}
+        <div style={{ padding: '18px 22px 22px', borderTop: '1px solid rgba(200,169,106,0.1)' }}>
+          <h3 style={{ fontFamily: 'Georgia,serif', fontSize: '20px', color: '#fff', margin: '0 0 6px' }}>{dish.name}</h3>
+          <p style={{ fontFamily: 'system-ui', fontSize: '12px', color: 'rgba(255,255,255,0.4)', lineHeight: 1.6, margin: '0 0 14px' }}>{dish.desc}</p>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontFamily: 'Georgia,serif', fontSize: '20px', color: '#C8A96A' }}>{dish.price}</span>
+            <button
+              onClick={() => { onClose(); navigate('prenotazioni'); }}
+              style={{ background: '#C8A96A', color: '#0B0B0B', border: 'none', padding: '9px 18px', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', fontWeight: 500, borderRadius: '2px' }}>
+              Prenota
+            </button>
+          </div>
+        </div>
+      </div>
+      <style>{`@keyframes popIn { from { opacity:0; transform:scale(0.95) translateY(10px); } to { opacity:1; transform:scale(1) translateY(0); } }`}</style>
+    </div>
+  );
+}
+
+function DishCard({ dish }: { dish: Dish }) {
+  const [open, setOpen] = useState(false);
   return (
     <>
       <div className="flex items-start justify-between gap-4 pb-6 border-b border-white/5 last:border-0 group">
@@ -45,58 +124,15 @@ function DishCard({ dish }: { dish: Dish }) {
         </div>
         <div className="flex items-center gap-3 shrink-0 mt-0.5">
           {dish.foto && (
-            <button onClick={() => setPopup(true)}
-              className="relative overflow-hidden hover:opacity-90 transition-opacity group/img"
-              style={{ width:'56px', height:'56px', borderRadius:'4px', flexShrink:0, border:'1px solid rgba(200,169,106,0.2)' }}>
-              <img src={squareUrl(dish.foto)} alt={dish.name} className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-nero/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
-                <span style={{ color:'#C8A96A', fontSize:'16px' }}>🔍</span>
-              </div>
+            <button onClick={() => setOpen(true)}
+              style={{ width:'52px', height:'52px', borderRadius:'4px', overflow:'hidden', border:'1px solid rgba(200,169,106,0.25)', flexShrink:0, padding:0, cursor:'pointer', position:'relative', background:'#1A1A1A' }}>
+              <img src={squareUrl(dish.foto)} alt={dish.name} style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }} />
             </button>
           )}
           <span className="font-serif text-lg text-oro whitespace-nowrap">{dish.price}</span>
         </div>
       </div>
-
-      {popup && dish.foto && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-6"
-          style={{ backdropFilter:'blur(16px)', WebkitBackdropFilter:'blur(16px)', background:'rgba(11,11,11,0.85)' }}
-          onClick={() => setPopup(false)}>
-          <div
-            className="relative max-w-md w-full"
-            style={{ animation:'popupIn 0.25s ease-out' }}
-            onClick={e => e.stopPropagation()}>
-            {/* Bottone chiudi */}
-            <button
-              onClick={() => setPopup(false)}
-              className="absolute -top-4 -right-4 z-10 w-9 h-9 flex items-center justify-center rounded-full bg-grigio border border-white/10 text-white/60 hover:text-white hover:border-oro/40 transition-all">
-              <X size={16} />
-            </button>
-            {/* Foto */}
-            <div style={{ borderRadius:'8px', overflow:'hidden', border:'1px solid rgba(200,169,106,0.15)' }}>
-              <img
-                src={imgUrl(dish.foto, {w:800, q:90})}
-                alt={dish.name}
-                className="w-full object-cover"
-                style={{ maxHeight:'60vh', objectFit:'contain', background:'#111' }}
-              />
-              {/* Info sotto foto */}
-              <div style={{ background:'#111', padding:'16px 20px', borderTop:'1px solid rgba(200,169,106,0.1)' }}>
-                <h3 className="font-serif text-xl text-white mb-1">{dish.name}</h3>
-                <p className="font-sans text-xs text-white/40 leading-relaxed mb-3">{dish.desc}</p>
-                <p className="font-serif text-lg text-oro">{dish.price}</p>
-              </div>
-            </div>
-          </div>
-          <style>{`
-            @keyframes popupIn {
-              from { opacity:0; transform:scale(0.95) translateY(10px); }
-              to { opacity:1; transform:scale(1) translateY(0); }
-            }
-          `}</style>
-        </div>
-      )}
+      {open && dish.foto && <DishPopup dish={dish} onClose={() => setOpen(false)} />}
     </>
   );
 }
