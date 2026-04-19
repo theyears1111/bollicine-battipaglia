@@ -35,20 +35,23 @@ const fallbackSecondi: MenuData = { items:[
 
 function DishCard({ dish }: { dish: Dish }) {
   const [popup, setPopup] = useState(false);
+
   return (
     <>
       <div className="flex items-start justify-between gap-4 pb-6 border-b border-white/5 last:border-0 group">
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <h3 className="font-serif text-xl text-white mb-1 group-hover:text-oro transition-colors">{dish.name}</h3>
           <p className="font-sans text-xs text-white/40 leading-relaxed">{dish.desc}</p>
         </div>
         <div className="flex items-center gap-3 shrink-0 mt-0.5">
           {dish.foto && (
             <button onClick={() => setPopup(true)}
-              className="overflow-hidden hover:opacity-80 transition-opacity"
-              style={{ width:'52px', height:'52px', borderRadius:'4px', flexShrink:0 }}>
-              <img src={squareUrl(dish.foto)} alt={dish.name}
-                className="w-full h-full object-cover" />
+              className="relative overflow-hidden hover:opacity-90 transition-opacity group/img"
+              style={{ width:'56px', height:'56px', borderRadius:'4px', flexShrink:0, border:'1px solid rgba(200,169,106,0.2)' }}>
+              <img src={squareUrl(dish.foto)} alt={dish.name} className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-nero/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
+                <span style={{ color:'#C8A96A', fontSize:'16px' }}>🔍</span>
+              </div>
             </button>
           )}
           <span className="font-serif text-lg text-oro whitespace-nowrap">{dish.price}</span>
@@ -56,15 +59,42 @@ function DishCard({ dish }: { dish: Dish }) {
       </div>
 
       {popup && dish.foto && (
-        <div className="fixed inset-0 z-50 bg-nero/95 flex items-center justify-center p-6"
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-6"
+          style={{ backdropFilter:'blur(16px)', WebkitBackdropFilter:'blur(16px)', background:'rgba(11,11,11,0.85)' }}
           onClick={() => setPopup(false)}>
-          <button className="absolute top-6 right-6 text-white/50 hover:text-white" onClick={() => setPopup(false)}><X size={24} /></button>
-          <div onClick={e=>e.stopPropagation()} className="max-w-lg w-full">
-            <img src={imgUrl(dish.foto, {w:900, q:90})} alt={dish.name}
-              className="w-full object-cover" style={{borderRadius:'8px', maxHeight:'70vh', objectFit:'contain'}} />
-            <p className="font-serif text-xl text-white text-center mt-4">{dish.name}</p>
-            <p className="font-sans text-sm text-oro text-center mt-1">{dish.price}</p>
+          <div
+            className="relative max-w-md w-full"
+            style={{ animation:'popupIn 0.25s ease-out' }}
+            onClick={e => e.stopPropagation()}>
+            {/* Bottone chiudi */}
+            <button
+              onClick={() => setPopup(false)}
+              className="absolute -top-4 -right-4 z-10 w-9 h-9 flex items-center justify-center rounded-full bg-grigio border border-white/10 text-white/60 hover:text-white hover:border-oro/40 transition-all">
+              <X size={16} />
+            </button>
+            {/* Foto */}
+            <div style={{ borderRadius:'8px', overflow:'hidden', border:'1px solid rgba(200,169,106,0.15)' }}>
+              <img
+                src={imgUrl(dish.foto, {w:800, q:90})}
+                alt={dish.name}
+                className="w-full object-cover"
+                style={{ maxHeight:'60vh', objectFit:'contain', background:'#111' }}
+              />
+              {/* Info sotto foto */}
+              <div style={{ background:'#111', padding:'16px 20px', borderTop:'1px solid rgba(200,169,106,0.1)' }}>
+                <h3 className="font-serif text-xl text-white mb-1">{dish.name}</h3>
+                <p className="font-sans text-xs text-white/40 leading-relaxed mb-3">{dish.desc}</p>
+                <p className="font-serif text-lg text-oro">{dish.price}</p>
+              </div>
+            </div>
           </div>
+          <style>{`
+            @keyframes popupIn {
+              from { opacity:0; transform:scale(0.95) translateY(10px); }
+              to { opacity:1; transform:scale(1) translateY(0); }
+            }
+          `}</style>
         </div>
       )}
     </>
@@ -105,8 +135,7 @@ export default function Menu() {
             <h2 className="font-serif text-4xl md:text-5xl text-white mb-6">Un percorso sensoriale</h2>
             <div className="w-12 h-px bg-oro mx-auto mb-6" />
             <p className="font-sans text-sm text-white/50 max-w-xl mx-auto leading-relaxed">
-              La cucina di Bollicine è studiata per esaltare ogni abbinamento con vino.
-              Luigi vi guiderà nella scelta della bottiglia perfetta.
+              La cucina di Bollicine è studiata per esaltare ogni abbinamento con vino. Luigi vi guiderà nella scelta della bottiglia perfetta.
             </p>
           </div>
           <MenuSection title="Antipasti" items={antipasti.items} delay={1} />
