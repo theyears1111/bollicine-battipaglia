@@ -3,21 +3,21 @@ import { Star, Wine, Utensils, Sparkles, ChevronDown } from 'lucide-react';
 import { navigate } from '../App';
 import { useReveal } from '../hooks/useReveal';
 import { useFirestore } from '../hooks/useFirestore';
-import { imgUrl, squareUrl } from '../lib/cloudinary';
+import { squareUrl } from '../lib/cloudinary';
 
-const HERO_IMG = 'https://images.pexels.com/photos/941861/pexels-photo-941861.jpeg?auto=compress&cs=tinysrgb&w=1920';
+const HERO = 'https://images.pexels.com/photos/941861/pexels-photo-941861.jpeg?auto=compress&cs=tinysrgb&w=1920';
 const WINE_BG = 'https://images.pexels.com/photos/1407846/pexels-photo-1407846.jpeg?auto=compress&cs=tinysrgb&w=1920';
 
 const FALLBACK_HIGHLIGHTS = [
-  { img: 'https://images.pexels.com/photos/1279330/pexels-photo-1279330.jpeg?auto=compress&cs=tinysrgb&w=600', name: 'Gnocchi al Tartufo Nero', desc: 'Un primo piatto d\'eccellenza con tartufo pregiato' },
-  { img: 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=600', name: 'Tagliere di Salumi Selezionati', desc: 'Salumi artigianali e formaggi affinati' },
-  { img: 'https://images.pexels.com/photos/5718025/pexels-photo-5718025.jpeg?auto=compress&cs=tinysrgb&w=600', name: 'Crostini Beppino Occelli', desc: 'Con burro premium e alici del Cantábrico' },
+  { img:'https://images.pexels.com/photos/1279330/pexels-photo-1279330.jpeg?auto=compress&cs=tinysrgb&w=600', name:'Gnocchi al Tartufo Nero', desc:"Un primo piatto d'eccellenza con tartufo pregiato" },
+  { img:'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=600', name:'Tagliere di Salumi Selezionati', desc:'Salumi artigianali e formaggi affinati' },
+  { img:'https://images.pexels.com/photos/5718025/pexels-photo-5718025.jpeg?auto=compress&cs=tinysrgb&w=600', name:'Crostini Beppino Occelli', desc:'Con burro premium e alici del Cantábrico' },
 ];
 
 const reviews = [
-  { name: 'Martino S.', text: 'Giovani, preparati, competenti e gentili. Un bel posto per aprire belle bottiglie e stuzzicare con qualcosa di ricercato.', stars: 5 },
-  { name: 'Valentina D.', text: 'Un\'esperienza gastronomica unica e indimenticabile. Luigi e il suo team offrono eccellenza assoluta a Battipaglia.', stars: 5 },
-  { name: 'Graziella S.', text: 'Un paradiso per gli appassionati di vino. Grandi etichette da tutto il mondo e una straordinaria stanza dei vini.', stars: 5 },
+  { name:'Martino S.', text:"Giovani, preparati, competenti e gentili. Un bel posto per aprire belle bottiglie e stuzzicare con qualcosa di ricercato.", stars:5 },
+  { name:'Valentina D.', text:"Un'esperienza gastronomica unica e indimenticabile. Eccellenza assoluta a Battipaglia.", stars:5 },
+  { name:'Graziella S.', text:'Un paradiso per gli appassionati di vino. Grandi etichette da tutto il mondo e una straordinaria stanza dei vini.', stars:5 },
 ];
 
 interface Dish { name:string; desc:string; price:string; foto?:string; }
@@ -25,10 +25,9 @@ interface MenuData { items: Dish[]; }
 interface HomeData { titolo:string; sottotitolo:string; testo:string; slogan:string; }
 
 const fallbackHome: HomeData = {
-  titolo: "Un'esperienza di",
-  sottotitolo: 'vino e cucina',
-  testo: 'Bollicine nasce dalla passione di Luigi, sommelier esperto, che ha trasformato un sogno in un luogo dove ogni calice racconta una storia.',
-  slogan: 'Battipaglia · Campania',
+  titolo:"Un'esperienza di", sottotitolo:'vino e cucina',
+  testo:"Bollicine nasce dalla passione di Luigi, sommelier esperto, che ha trasformato un sogno in un luogo dove ogni calice racconta una storia.",
+  slogan:'Battipaglia · Campania',
 };
 
 export default function Home() {
@@ -36,73 +35,56 @@ export default function Home() {
   useEffect(() => { document.title = 'Bollicine — Ristorante e Wine Bar a Battipaglia'; }, []);
 
   const { data: hd } = useFirestore<HomeData>('home', fallbackHome);
-  const { data: antipasti } = useFirestore<MenuData>('menu_antipasti', { items: [] });
-  const { data: primi } = useFirestore<MenuData>('menu_primi', { items: [] });
+  const { data: antipasti } = useFirestore<MenuData>('menu_antipasti', { items:[] });
+  const { data: primi } = useFirestore<MenuData>('menu_primi', { items:[] });
 
-  // Prende i primi 3 piatti che hanno una foto, da antipasti e primi
-  const allDishes = [...(antipasti.items || []), ...(primi.items || [])];
-  const withPhoto = allDishes.filter(d => d.foto);
+  // Primi 3 piatti con foto da menu Firebase
+  const allDishes = [...(antipasti.items||[]), ...(primi.items||[])];
+  const withPhoto = allDishes.filter(d => d.foto && d.foto.length > 0);
   const highlights = withPhoto.length >= 3
-    ? withPhoto.slice(0, 3).map(d => ({ img: d.foto!, name: d.name, desc: d.desc }))
+    ? withPhoto.slice(0,3).map(d => ({ img:d.foto!, name:d.name, desc:d.desc }))
     : FALLBACK_HIGHLIGHTS;
 
   return (
     <>
       {/* HERO */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
-        <img src={HERO_IMG} alt="Ristorante Bollicine"
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ animation: 'kenBurns 20s ease-in-out infinite alternate' }} />
+        <img src={HERO} alt="Bollicine" className="absolute inset-0 w-full h-full object-cover"
+          style={{ animation:'kenBurns 20s ease-in-out infinite alternate' }} />
         <div className="absolute inset-0 bg-nero/65" />
         <div className="relative z-10 text-center px-6 max-w-4xl mx-auto">
-          <p className="font-sans text-xs tracking-[0.3em] uppercase text-oro mb-6 reveal">
-            {hd.slogan || fallbackHome.slogan}
-          </p>
+          <p className="font-sans text-xs tracking-[0.3em] uppercase text-oro mb-6 reveal">{hd.slogan||fallbackHome.slogan}</p>
           <h1 className="font-serif text-5xl sm:text-6xl md:text-7xl lg:text-8xl text-white leading-none mb-6 reveal reveal-delay-1">
-            {hd.titolo || fallbackHome.titolo}<br />
-            <em className="text-oro italic">{hd.sottotitolo || fallbackHome.sottotitolo}</em>
+            {hd.titolo||fallbackHome.titolo}<br />
+            <em className="text-oro italic">{hd.sottotitolo||fallbackHome.sottotitolo}</em>
           </h1>
-          <p className="font-sans text-base text-white/60 tracking-widest mb-12 reveal reveal-delay-2">
-            Benvenuti a Bollicine — Battipaglia
-          </p>
+          <p className="font-sans text-base text-white/60 tracking-widest mb-12 reveal reveal-delay-2">Benvenuti a Bollicine — Battipaglia</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center reveal reveal-delay-3">
             <button onClick={() => navigate('prenotazioni')} className="btn-primary">Prenota ora</button>
             <button onClick={() => navigate('menu')} className="btn-ghost">Scopri il menu</button>
           </div>
         </div>
-        <button onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
+        <button onClick={() => window.scrollTo({top:window.innerHeight,behavior:'smooth'})}
           className="absolute bottom-10 left-1/2 -translate-x-1/2 text-oro/50 hover:text-oro transition-colors animate-bounce">
           <ChevronDown size={28} />
         </button>
       </section>
-
-      <style>{`
-        @keyframes kenBurns {
-          from { transform: scale(1.05) translate(0, 0); }
-          to { transform: scale(1.1) translate(-1%, -1%); }
-        }
-      `}</style>
+      <style>{`@keyframes kenBurns { from { transform:scale(1.05) translate(0,0); } to { transform:scale(1.1) translate(-1%,-1%); } }`}</style>
 
       {/* INTRO */}
       <section className="py-28 bg-nero">
         <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
           <div>
             <p className="font-sans text-xs tracking-widest uppercase text-oro mb-4 reveal">Benvenuti</p>
-            <h2 className="font-serif text-4xl md:text-5xl text-white mb-6 reveal reveal-delay-1">
-              Dove il vino<br />incontra la passione
-            </h2>
+            <h2 className="font-serif text-4xl md:text-5xl text-white mb-6 reveal reveal-delay-1">Dove il vino<br />incontra la passione</h2>
             <div className="gold-divider reveal reveal-delay-1" />
-            <p className="font-sans text-sm text-white/60 leading-relaxed mb-8 reveal reveal-delay-2">
-              {hd.testo || fallbackHome.testo}
-            </p>
+            <p className="font-sans text-sm text-white/60 leading-relaxed mb-8 reveal reveal-delay-2">{hd.testo||fallbackHome.testo}</p>
             <button onClick={() => navigate('chi-siamo')} className="btn-secondary reveal reveal-delay-3">La nostra storia</button>
           </div>
           <div className="relative reveal reveal-delay-2">
             <img src={WINE_BG} alt="Cantina Bollicine" className="w-full h-80 md:h-96 object-cover" />
             <div className="absolute -bottom-6 -left-6 bg-oro p-6 hidden md:block">
-              <div className="flex items-center gap-2 mb-1">
-                {[...Array(5)].map((_, i) => <Star key={i} size={14} fill="#0B0B0B" className="text-nero" />)}
-              </div>
+              <div className="flex items-center gap-2 mb-1">{[...Array(5)].map((_,i)=><Star key={i} size={14} fill="#0B0B0B" className="text-nero"/>)}</div>
               <p className="font-serif text-nero text-3xl font-medium">4.9</p>
               <p className="font-sans text-nero/70 text-xs tracking-widest">222 recensioni</p>
             </div>
@@ -119,10 +101,10 @@ export default function Home() {
           </div>
           <div className="grid md:grid-cols-3 gap-8">
             {[
-              { icon:<Wine size={28} className="text-oro"/>, title:"Vini d'eccellenza", desc:"Una selezione curata dal sommelier Luigi: champagne, franciacorta, grandi etichette italiane e internazionali." },
-              { icon:<Utensils size={28} className="text-oro"/>, title:"Cucina ricercata", desc:"Ingredienti di prima qualità, prodotti selezionati, ricette che esaltano la tradizione con eleganza contemporanea." },
-              { icon:<Sparkles size={28} className="text-oro"/>, title:"Un'esperienza unica", desc:"Atmosfera accogliente ed elegante, perfetta per serate speciali, degustazioni guidate e momenti indimenticabili." },
-            ].map((p, i) => (
+              {icon:<Wine size={28} className="text-oro"/>, title:"Vini d'eccellenza", desc:"Una selezione curata dal sommelier Luigi: champagne, franciacorta, grandi etichette italiane e internazionali."},
+              {icon:<Utensils size={28} className="text-oro"/>, title:"Cucina ricercata", desc:"Ingredienti di prima qualità, prodotti selezionati, ricette che esaltano la tradizione con eleganza contemporanea."},
+              {icon:<Sparkles size={28} className="text-oro"/>, title:"Un'esperienza unica", desc:"Atmosfera accogliente ed elegante, perfetta per serate speciali, degustazioni guidate e momenti indimenticabili."},
+            ].map((p,i) => (
               <div key={i} className={`p-8 border border-white/5 hover:border-oro/30 transition-all duration-300 group reveal reveal-delay-${i+1}`}>
                 <div className="mb-6">{p.icon}</div>
                 <h3 className="font-serif text-2xl text-white mb-4 group-hover:text-oro transition-colors">{p.title}</h3>
@@ -133,7 +115,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* PIATTI IN EVIDENZA — aggiornati da Firebase */}
+      {/* PIATTI IN EVIDENZA — da Firebase */}
       <section className="py-24 bg-nero">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-16">
@@ -141,7 +123,7 @@ export default function Home() {
             <h2 className="font-serif text-4xl md:text-5xl text-white reveal reveal-delay-1">Piatti in evidenza</h2>
           </div>
           <div className="grid md:grid-cols-3 gap-6 mb-12">
-            {highlights.map((item, i) => (
+            {highlights.map((item,i) => (
               <div key={i} className={`group cursor-pointer reveal reveal-delay-${i+1}`} onClick={() => navigate('menu')}>
                 <div className="overflow-hidden mb-4" style={{height:'256px'}}>
                   <img src={squareUrl(item.img)} alt={item.name}
@@ -172,7 +154,7 @@ export default function Home() {
             </div>
           </div>
           <div className="grid md:grid-cols-3 gap-6 mb-12">
-            {reviews.map((r, i) => (
+            {reviews.map((r,i) => (
               <div key={i} className={`p-6 border border-white/5 reveal reveal-delay-${i+1}`}>
                 <div className="flex gap-1 mb-4">{[...Array(r.stars)].map((_,j)=><Star key={j} size={14} fill="#C8A96A" className="text-oro"/>)}</div>
                 <p className="font-sans text-sm text-white/60 leading-relaxed mb-6 italic">"{r.text}"</p>
@@ -188,7 +170,7 @@ export default function Home() {
 
       {/* CTA */}
       <section className="relative py-32 flex items-center justify-center overflow-hidden"
-        style={{ backgroundImage:`url(${WINE_BG})`, backgroundSize:'cover', backgroundPosition:'center' }}>
+        style={{backgroundImage:`url(${WINE_BG})`,backgroundSize:'cover',backgroundPosition:'center'}}>
         <div className="absolute inset-0 bg-nero/80" />
         <div className="relative z-10 text-center px-6 reveal">
           <p className="font-sans text-xs tracking-widest uppercase text-oro mb-4">Prenota la tua serata</p>
