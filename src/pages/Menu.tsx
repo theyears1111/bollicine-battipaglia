@@ -115,8 +115,9 @@ function DishCard({ dish }: { dish: Dish }) {
         <div className="flex items-center gap-3 shrink-0 mt-0.5">
           {dish.foto && (
             <button onClick={() => setOpen(true)}
-              style={{ width:'52px', height:'52px', borderRadius:'4px', overflow:'hidden', border:'1px solid rgba(200,169,106,0.25)', flexShrink:0, padding:0, cursor:'pointer', position:'relative', background:'#1A1A1A' }}>
-              <img src={squareUrl(dish.foto)} alt={dish.name} style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }} />
+              style={{ width:'56px', height:'56px', borderRadius:'4px', overflow:'hidden', border:'1px solid rgba(200,169,106,0.25)', flexShrink:0, padding:0, cursor:'pointer', background:'#1A1A1A', display:'block' }}>
+              <img src={squareUrl(dish.foto)} alt={dish.name}
+                style={{ width:'56px', height:'56px', objectFit:'cover', display:'block', flexShrink:0 }} />
             </button>
           )}
           <span className="font-serif text-lg text-oro whitespace-nowrap">{dish.price}</span>
