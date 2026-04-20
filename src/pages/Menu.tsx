@@ -107,21 +107,26 @@ function DishCard({ dish }: { dish: Dish }) {
   const [open, setOpen] = useState(false);
   return (
     <>
-      <div className="flex items-start justify-between gap-4 pb-6 border-b border-white/5 last:border-0 group">
-        <div className="flex-1 min-w-0">
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 56px 90px', alignItems:'center', gap:'12px', paddingBottom:'20px', borderBottom:'1px solid rgba(255,255,255,0.05)' }} className="group last:border-b-0">
+        {/* Testo */}
+        <div>
           <h3 className="font-serif text-xl text-white mb-1 group-hover:text-oro transition-colors">{dish.name}</h3>
           <p className="font-sans text-xs text-white/40 leading-relaxed">{dish.desc}</p>
         </div>
-        <div className="flex items-center gap-3 shrink-0 mt-0.5">
-          {dish.foto && (
+        {/* Foto — colonna fissa sempre presente per allineamento */}
+        <div style={{ width:'56px', height:'56px' }}>
+          {dish.foto ? (
             <button onClick={() => setOpen(true)}
-              style={{ width:'56px', height:'56px', borderRadius:'4px', overflow:'hidden', border:'1px solid rgba(200,169,106,0.25)', flexShrink:0, padding:0, cursor:'pointer', background:'#1A1A1A', display:'block' }}>
+              style={{ width:'56px', height:'56px', borderRadius:'4px', overflow:'hidden', border:'1px solid rgba(200,169,106,0.25)', padding:0, cursor:'pointer', background:'#1A1A1A', display:'block' }}>
               <img src={squareUrl(dish.foto)} alt={dish.name}
-                style={{ width:'56px', height:'56px', objectFit:'cover', display:'block', flexShrink:0 }} />
+                style={{ width:'56px', height:'56px', objectFit:'cover', display:'block' }} />
             </button>
+          ) : (
+            <div style={{ width:'56px', height:'56px' }} />
           )}
-          <span className="font-serif text-lg text-oro whitespace-nowrap">{dish.price}</span>
         </div>
+        {/* Prezzo */}
+        <span className="font-serif text-lg text-oro whitespace-nowrap" style={{ textAlign:'right' }}>{dish.price}</span>
       </div>
       {open && dish.foto && <DishPopup dish={dish} onClose={() => setOpen(false)} />}
     </>
