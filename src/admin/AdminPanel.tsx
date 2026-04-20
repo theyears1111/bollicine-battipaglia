@@ -62,17 +62,9 @@ export default function AdminPanel({ user, onLogout }: Props) {
         </button>
       </div>
 
-      <div style={{ display:'flex', flex:1, overflow:'hidden', position:'relative' }}>
-        <div style={{
-          width:'220px', background:'#111',
-          borderRight:'1px solid rgba(200,169,106,0.15)',
-          display:'flex', flexDirection:'column', flexShrink:0,
-          position: window.innerWidth < 768 ? (mobileMenu ? 'fixed' : 'fixed') : 'relative',
-          top:0, left: window.innerWidth < 768 ? (mobileMenu ? '0' : '-220px') : '0',
-          bottom:0, zIndex:999,
-          transition:'left 0.28s ease',
-          overflowY:'auto',
-        }}>
+      <div style={{ display:'flex', flex:1, position:'relative', minHeight:0 }}>
+        {/* Sidebar — fixed su mobile, relativa su desktop */}
+        <div style={{ width:'220px', background:'#111', borderRight:'1px solid rgba(200,169,106,0.15)', display:'flex', flexDirection:'column', flexShrink:0, position:'fixed', top:0, left: mobileMenu ? '0' : '-220px', bottom:0, zIndex:9999, transition:'left 0.25s ease', overflowY:'auto' }}>
           <div style={{ padding:'16px 12px', borderBottom:'1px solid rgba(200,169,106,0.1)' }}>
             <p style={{ color:'rgba(255,255,255,0.3)', fontSize:'10px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', margin:0 }}>{user.email}</p>
           </div>
@@ -89,7 +81,7 @@ export default function AdminPanel({ user, onLogout }: Props) {
           </div>
         </div>
 
-        {mobileMenu && <div onClick={() => setMobileMenu(false)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.65)', zIndex:998 }} />}
+        {mobileMenu && <div onClick={() => setMobileMenu(false)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.65)', zIndex:9998 }} />}
 
         <div style={{ flex:1, overflowY:'auto', padding:'20px 16px' }}>
           {loading
