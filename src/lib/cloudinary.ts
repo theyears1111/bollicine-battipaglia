@@ -1,20 +1,22 @@
-// Utility Cloudinary — ottimizza automaticamente tutte le immagini
 const CLOUD = 'dmybopb31';
 
 export function imgUrl(url: string, opts?: {
   w?: number; h?: number; fit?: 'fill'|'cover'|'contain'|'scale'; q?: number;
 }): string {
-  if (!url || !url.includes('cloudinary.com')) return url;
+  if (!url) return url;
+  // Solo Cloudinary viene ottimizzato
+  if (!url.includes('cloudinary.com')) return url;
   const { w = 800, h, fit = 'fill', q = 85 } = opts || {};
+  // c_fill = crop intelligente (non stira), g_auto = centro automatico
+  const cropMode = h ? 'c_fill,g_auto' : 'c_scale';
   const transforms = [
     `w_${w}`,
     h ? `h_${h}` : '',
-    `c_${fit}`,
+    cropMode,
     `q_${q}`,
     'f_webp',
     'dpr_auto',
   ].filter(Boolean).join(',');
-
   return url.replace('/upload/', `/upload/${transforms}/`);
 }
 

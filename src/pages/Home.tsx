@@ -26,11 +26,11 @@ const fallbackHome: HomeData = {
   testo:"Bollicine nasce dalla passione di Luigi, sommelier esperto, che ha trasformato un sogno in un luogo dove ogni calice racconta una storia.",
   slogan:'Battipaglia · Campania',
   piatto1_nome:'Gnocchi al Tartufo Nero', piatto1_desc:"Un primo piatto d'eccellenza con tartufo pregiato",
-  piatto1_foto:'https://images.pexels.com/photos/1279330/pexels-photo-1279330.jpeg?auto=compress&cs=tinysrgb&w=600',
+  piatto1_foto:'https://images.pexels.com/photos/1279330/pexels-photo-1279330.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop',
   piatto2_nome:'Tagliere di Salumi', piatto2_desc:'Salumi artigianali e formaggi affinati',
-  piatto2_foto:'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=600',
+  piatto2_foto:'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop',
   piatto3_nome:'Crostini Beppino Occelli', piatto3_desc:'Con burro premium e alici del Cantábrico',
-  piatto3_foto:'https://images.pexels.com/photos/5718025/pexels-photo-5718025.jpeg?auto=compress&cs=tinysrgb&w=600',
+  piatto3_foto:'https://images.pexels.com/photos/5718025/pexels-photo-5718025.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop',
 };
 
 export default function Home() {
@@ -121,9 +121,13 @@ export default function Home() {
           <div className="grid md:grid-cols-3 gap-6 mb-12">
             {piatti.map((p,i) => (
               <div key={i} className={`group cursor-pointer reveal reveal-delay-${i+1}`} onClick={() => navigate('menu')}>
-                <div className="overflow-hidden mb-4" style={{height:'256px'}}>
-                  <img src={imgUrl(p.foto, {w:600, h:512, fit:'fill', q:85})} alt={p.nome}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                <div className="overflow-hidden mb-4" style={{ aspectRatio:'4/3', width:'100%' }}>
+                  <img
+                    src={imgUrl(p.foto, {w:800, h:600, fit:'fill', q:90})}
+                    alt={p.nome}
+                    style={{ width:'100%', height:'100%', objectFit:'cover', display:'block', transition:'transform 0.7s ease' }}
+                    className="group-hover:scale-105"
+                  />
                 </div>
                 <h3 className="font-serif text-xl text-white mb-2 group-hover:text-oro transition-colors">{p.nome}</h3>
                 <p className="font-sans text-xs text-white/40">{p.desc}</p>
